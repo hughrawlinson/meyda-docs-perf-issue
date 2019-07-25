@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <title>Meyda</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+  <script type="text/javascript" src="https://npmcdn.com/meyda/dist/web/meyda.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/84/three.js" charset="utf-8"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1, user-scalable=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge"><!-- Begin Jekyll SEO tag v2.5.0 -->
+<title>Meyda: Javascript Audio Feature Extraction | Meyda is a Javascript audio feature extraction library. Meyda supports both offline feature extraction as well as real-time feature extraction using the Web Audio API.</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="Meyda: Javascript Audio Feature Extraction" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Meyda is a Javascript audio feature extraction library. Meyda supports both offline feature extraction as well as real-time feature extraction using the Web Audio API." />
+<meta property="og:description" content="Meyda is a Javascript audio feature extraction library. Meyda supports both offline feature extraction as well as real-time feature extraction using the Web Audio API." />
+<link rel="canonical" href="/guides/online-web-audio.html" />
+<meta property="og:url" content="/guides/online-web-audio.html" />
+<meta property="og:site_name" content="Meyda: Javascript Audio Feature Extraction" />
+<script type="application/ld+json">
+{"description":"Meyda is a Javascript audio feature extraction library. Meyda supports both offline feature extraction as well as real-time feature extraction using the Web Audio API.","url":"/guides/online-web-audio.html","headline":"Meyda: Javascript Audio Feature Extraction","@type":"WebPage","@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="/feed.xml" title="Meyda: Javascript Audio Feature Extraction" /></head>
+<body>
+    <div class="container"><div class="row">
+  <div class="col">
+    <a href="/" id="title-link"><h1 class="display-1">Meyda</h1></a>
+    <p class="lead">Audio feature extraction for JavaScript.</p>
+    <hr>
+  </div><nav>
+  <a href="/getting-started">Getting Started</a> |
+  <a href="/reference">Reference</a> |
+  <a href="/audio-features">Audio Features</a> |
+  <a href="/showcase">Showcase</a> |
+  <a href="/guides/contributing">Contributing</a> |
+  <a href="https://github.com/hughrawlinson/meyda/issues">Issue Tracker</a>
+</nav>
+</div>
+<p>This tutorial will guide you through the steps of using Meyda to analyze audio
+in the context of the <a href="https://github.com/WebAudio/web-audio-api">Web Audio API</a>. The Web Audio API is a set
+of tools available in most major browsers that let you build immersive audio
+experiences in the web.</p>
+
+<p>If you run into any difficulties, please help us out by <a href="https://github.com/meyda/meyda/issues/new">reporting an issue</a> so that we can clarify this document for everyone.</p>
+
+<p>Today we’ll build a website that plays an audio file, and shows the user the
+level (how loud the sound is) of the audio as it plays. Lets get started!</p>
+
+<h2 id="1-create-a-website-project-using-your-favorite-tool">1. Create a website project using your favorite tool</h2>
+
+<p>Meyda works with standard Web APIs, and bundles all of its very minimal
+dependencies, so you can use it with your favorite tools. If you’re looking for
+a quick and easy tool to build and host a website for free, we recommend
+<a href="https://glitch.com/">glitch.com</a>. If you have an existing tool you’d prefer, please go ahead
+and use it, you’ll be able to import Meyda in the standard way for your project.</p>
+
+<p>If you’re using glitch, log in and click “new project”, then “hello webpage”.
+You’ll be greeted with a fresh new website that’s already live for you on the
+internet!</p>
+
+<h2 id="2-add-a-html-5-audio-element-to-play-your-audio">2. Add a HTML 5 Audio element to play your audio</h2>
+
+<p>You’ll need some audio to visualize! If you don’t already have your favorite mp3
+handy, you can download a royalty free sound clip from <a href="https://freesound.org">Freesound.org</a>.</p>
+
+<p>Include it in your HTML by pasting the following snippet into the body of your
+<code class="highlighter-rouge">index.html</code>:</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;audio</span>
+   <span class="na">controls</span>
+   <span class="na">loop</span>
+   <span class="na">crossorigin=</span><span class="s">"anonymous"</span>
+   <span class="na">id=</span><span class="s">"audio"</span>
+   <span class="na">src=</span><span class="s">"[THE URL TO YOUR AUDIO FILE]"</span>
+   <span class="nt">&gt;</span>
+<span class="nt">&lt;/audio&gt;</span>
+</code></pre></div></div>
+
+<p>When you load your website, you should now see an audio player that plays your
+audio.</p>
+
+<h2 id="3-create-a-web-audio-audio-context-and-play-your-audio-through-web-audio">3. Create a Web Audio “Audio Context”, and play your audio through Web Audio</h2>
+
+<p>Next, switch to your <code class="highlighter-rouge">script.js</code> (or wherever you’re keeping your Javascript
+code). In order for Meyda to hear your audio, you’ll need to plug it in to the
+Web Audio API. First, we create a Web Audio Context. This is like a box that all
+of your audio lives in. We create an audio context like this:</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">audioContext</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">AudioContext</span><span class="p">();</span>
+</code></pre></div></div>
+
+<p>Now we need to have the audio context take control of your HTML Audio Element.</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// Select the Audio Element from the DOM</span>
+<span class="kd">const</span> <span class="nx">htmlAudioElement</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">"audio"</span><span class="p">);</span>
+<span class="c1">// Create an "Audio Node" from the Audio Element</span>
+<span class="kd">const</span> <span class="nx">source</span> <span class="o">=</span> <span class="nx">audioContext</span><span class="p">.</span><span class="nx">createMediaElementSource</span><span class="p">(</span><span class="nx">htmlAudioElement</span><span class="p">);</span>
+<span class="c1">// Connect the Audio Node to your speakers. Now that the audio lives in the</span>
+<span class="c1">// Audio Context, you have to explicitly connect it to the speakers in order to</span>
+<span class="c1">// hear it</span>
+<span class="nx">source</span><span class="p">.</span><span class="nx">connect</span><span class="p">(</span><span class="nx">audioContext</span><span class="p">.</span><span class="nx">destination</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>Try reloading the website again just to make sure that you can still hear the
+audio.</p>
+
+<h2 id="4-create-a-meyda-analyzer-and-tell-it-to-listen-to-your-audio">4. Create a Meyda Analyzer, and tell it to listen to your audio</h2>
+
+<p>Here’s where Meyda gets involved! Now that audio is flowing between nodes in the
+Audio Context box, we need to create a Meyda Analyzer to listen to the audio
+and compute the level. Let’s look at the code.</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">Meyda</span> <span class="o">===</span> <span class="s2">"undefined"</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">"Meyda could not be found! Have you included it?"</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="k">else</span> <span class="p">{</span>
+  <span class="kd">const</span> <span class="nx">analyzer</span> <span class="o">=</span> <span class="nx">Meyda</span><span class="p">.</span><span class="nx">createMeydaAnalyzer</span><span class="p">({</span>
+    <span class="s2">"audioContext"</span><span class="p">:</span> <span class="nx">audioContext</span><span class="p">,</span>
+    <span class="s2">"source"</span><span class="p">:</span> <span class="nx">source</span><span class="p">,</span>
+    <span class="s2">"bufferSize"</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span>
+    <span class="s2">"featureExtractors"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"rms"</span><span class="p">],</span>
+    <span class="s2">"callback"</span><span class="p">:</span> <span class="nx">features</span> <span class="o">=&gt;</span> <span class="p">{</span>
+      <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">features</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">});</span>
+  <span class="nx">analyzer</span><span class="p">.</span><span class="nx">start</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>That was a lot! Lets step through it bit by bit to see what it’s doing.</p>
+
+<p>If Meyda isn’t available in Javascript, lets log it so that we know what’s going
+on. Usually this is caused by Meyda not being included correctly. If you’re
+using Glitch, make sure you’ve installed Meyda by pasting
+<code class="highlighter-rouge">&lt;script src="https://unpkg.com/meyda/dist/web/meyda.min.js"&gt;&lt;/script&gt;</code> into
+your HTML. In most other projects, make sure you’ve installed Meyda using npm,
+and imported or required it into your Javascript file.</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">Meyda</span> <span class="o">===</span> <span class="s2">"undefined"</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">"Meyda could not be found! Have you included it?"</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Otherwise, we’ll create a Meyda Analyzer and tell it to listen to our Audio
+Source Node.</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// Create the Meyda Analyzer</span>
+<span class="kd">const</span> <span class="nx">analyzer</span> <span class="o">=</span> <span class="nx">Meyda</span><span class="p">.</span><span class="nx">createMeydaAnalyzer</span><span class="p">({</span>
+  <span class="c1">// Pass in the AudioContext so that Meyda knows which AudioContext Box to work with</span>
+  <span class="s2">"audioContext"</span><span class="p">:</span> <span class="nx">audioContext</span><span class="p">,</span>
+  <span class="c1">// Source is the audio node that is playing your audio. It could be any node,</span>
+  <span class="c1">// but in this case, it's the MediaElementSourceNode corresponding to your</span>
+  <span class="c1">// HTML 5 Audio Element with your audio in it.</span>
+  <span class="s2">"source"</span><span class="p">:</span> <span class="nx">source</span><span class="p">,</span>
+  <span class="c1">// Buffer Size tells Meyda how often to check the audio feature, and is</span>
+  <span class="c1">// measured in Audio Samples. Usually there are 44100 Audio Samples in 1</span>
+  <span class="c1">// second, which means in this case Meyda will calculate the level about 86</span>
+  <span class="c1">// (44100/512) times per second.</span>
+  <span class="s2">"bufferSize"</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span>
+  <span class="c1">// Here we're telling Meyda which audio features to calculate. While Meyda can</span>
+  <span class="c1">// calculate a variety of audio features, in this case we only want to know</span>
+  <span class="c1">// the "rms" (root mean square) of the audio signal, which corresponds to its</span>
+  <span class="c1">// level</span>
+  <span class="s2">"featureExtractors"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"rms"</span><span class="p">],</span>
+  <span class="c1">// Finally, we provide a function which Meyda will call every time it</span>
+  <span class="c1">// calculates a new level. This function will be called around 86 times per</span>
+  <span class="c1">// second.</span>
+  <span class="s2">"callback"</span><span class="p">:</span> <span class="nx">features</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">features</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">});</span>
+</code></pre></div></div>
+
+<p>Now that Meyda is hooked up to our Audio Source, we tell it to start calculating
+the level like this:</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">analyzer</span><span class="p">.</span><span class="nx">start</span><span class="p">();</span>
+</code></pre></div></div>
+
+<p>When you run this code and play the audio in your HTML Audio Element, you should
+hear the audio, and see the level being printed to your browser console.</p>
+
+<h2 id="5-show-the-audio-analysis-that-meyda-returns-to-your-user">5. Show the audio analysis that Meyda returns to your user</h2>
+
+<p>Only one more step! Now that Meyda is calculating the level of your audio in
+real time, you can show the level in your web app. While there are plenty of
+ways to visualize things, one of the simplest ways is to set the value of an
+html input element of type “range”. Range is great because it displays as a
+slider in your web page. Lets add one in to our HTML:</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;label</span> <span class="na">for=</span><span class="s">"level"</span><span class="nt">&gt;</span>level<span class="nt">&lt;/label&gt;</span>
+<span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"range"</span>
+       <span class="na">id=</span><span class="s">"levelRange"</span>
+       <span class="na">name=</span><span class="s">"level"</span>
+       <span class="na">min=</span><span class="s">"0.0"</span>
+       <span class="na">max=</span><span class="s">"1.0"</span>
+       <span class="na">step=</span><span class="s">"0.001"</span>
+       <span class="nt">/&gt;</span>
+</code></pre></div></div>
+
+<p>The level (root mean square) audio feature ranges between 0 and 1, so we set
+these as the min and max values of our range. Level is a continuous audio
+feature (as opposed to having a discrete set of possible values), so we set the
+step size of our range element to be very small, so that we don’t lose too much
+precision when displaying it.</p>
+
+<p>Now that our HTML is in place, lets connect our Javascript.</p>
+
+<p>We’ve got to store a reference to our input element in our Javascript file, so
+we’ll store it in a variable at the top of our file. If you get lost and don’t
+know where to paste the code, don’t worry - you can check out the finished code
+at the end of the tutorial.</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">levelRangeElement</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">"levelRange"</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>Finally, inside Meyda’s callback (where you log the level), you should set the
+value of the range element to the value of the level that Meyda reported.</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">levelRangeElement</span><span class="p">.</span><span class="nx">value</span> <span class="o">=</span> <span class="nx">features</span><span class="p">.</span><span class="nx">rms</span><span class="p">;</span>
+</code></pre></div></div>
+
+<hr />
+
+<p>Well done! You built a website that shows the user the level of the audio
+that’s playing!</p>
+
+<p>Have a look at our complete implementation of this site hosted on Glitch.com</p>
+
+<div class="glitch-embed-wrap" style="height: 420px; width: 100%;">
+  <iframe src="https://glitch.com/embed/#!/embed/meyda-tutorial?path=script.js&amp;previewSize=42" alt="meyda-tutorial on glitch" style="height: 100%; width: 100%; border: 0;"></iframe>
+</div>
+
+<p>Here are a few things you might like to try next:</p>
+<ol>
+  <li>Learn more about audio features</li>
+  <li>Learn more about Web Audio</li>
+  <li>Learn how to use Meyda in Node.js</li>
+  <li>Learn how to choose Meyda’s parameters for your use case</li>
+</ol>
+
+<div class="row">
+  <div class="col">
+    <footer class="blog-footer">
+      <hr>
+      <p>Showcase site built by the Meyda core team. You can <a href="https://github.com/hughrawlinson/meyda/wiki/contributing">contribute</a> too you know!</p>
+      <p><a href="#">Back to top</a></p>
+    </footer>
+  </div>
+</div>
+</div>
+    <a href="https://github.com/hughrawlinson/meyda"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/e7bbb0521b397edbd5fe43e7f760759336b5e05f/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677265656e5f3030373230302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png"></a>
+  </body>
+</html>

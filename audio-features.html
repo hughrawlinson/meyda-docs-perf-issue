@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <title>Meyda</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+  <script type="text/javascript" src="https://npmcdn.com/meyda/dist/web/meyda.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/84/three.js" charset="utf-8"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1, user-scalable=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge"><!-- Begin Jekyll SEO tag v2.5.0 -->
+<title>Meyda: Javascript Audio Feature Extraction | Meyda is a Javascript audio feature extraction library. Meyda supports both offline feature extraction as well as real-time feature extraction using the Web Audio API.</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="Meyda: Javascript Audio Feature Extraction" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Meyda is a Javascript audio feature extraction library. Meyda supports both offline feature extraction as well as real-time feature extraction using the Web Audio API." />
+<meta property="og:description" content="Meyda is a Javascript audio feature extraction library. Meyda supports both offline feature extraction as well as real-time feature extraction using the Web Audio API." />
+<link rel="canonical" href="/audio-features.html" />
+<meta property="og:url" content="/audio-features.html" />
+<meta property="og:site_name" content="Meyda: Javascript Audio Feature Extraction" />
+<script type="application/ld+json">
+{"description":"Meyda is a Javascript audio feature extraction library. Meyda supports both offline feature extraction as well as real-time feature extraction using the Web Audio API.","url":"/audio-features.html","headline":"Meyda: Javascript Audio Feature Extraction","@type":"WebPage","@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="/feed.xml" title="Meyda: Javascript Audio Feature Extraction" /></head>
+<body>
+    <div class="container"><div class="row">
+  <div class="col">
+    <a href="/" id="title-link"><h1 class="display-1">Meyda</h1></a>
+    <p class="lead">Audio feature extraction for JavaScript.</p>
+    <hr>
+  </div><nav>
+  <a href="/getting-started">Getting Started</a> |
+  <a href="/reference">Reference</a> |
+  <a href="/audio-features">Audio Features</a> |
+  <a href="/showcase">Showcase</a> |
+  <a href="/guides/contributing">Contributing</a> |
+  <a href="https://github.com/hughrawlinson/meyda/issues">Issue Tracker</a>
+</nav>
+</div>
+<h2 id="what-is-an-audio-feature">What is an Audio Feature?</h2>
+
+<p>Often, observing and analysing an audio signal as a waveform doesn’t provide us a lot of information about its contents. An audio feature is a measurement of a particular characteristic of an audio signal, and it gives us insight into what the signal contains. Audio features can be measured by running an algorithm on an audio signal that will return a number, or a set of numbers that quantify the characteristic that the specific algorithm is intended to measure. Meyda implements a selection of standardized audio features that are used widely across a variety of music computing scenarios.</p>
+
+<p><em>Following is a list of supported features with their explanations. Unless stated otherwise, extraction algorithms have been adapted from the <a href="http://yaafe.sourceforge.net">yaafe</a> library.</em></p>
+
+<p><br /></p>
+
+<h2 id="time-domain-features">Time-domain features</h2>
+
+<h3 id="rms">RMS</h3>
+<p><code class="highlighter-rouge">rms</code></p>
+
+<ul>
+  <li><em>Description</em>: The root mean square of the waveform, that corresponds to its loudness. Corresponds to the ‘Energy’ feature in YAAFE, adapted from Loy’s Musimathics [1].</li>
+  <li><em>What Is It Used For</em>: Getting a rough idea about the loudness of a signal.</li>
+  <li><em>Range</em>: <code class="highlighter-rouge">0.0 - 1.0</code> where <code class="highlighter-rouge">0.0</code> is not loud and <code class="highlighter-rouge">1.0</code> is very loud.</li>
+</ul>
+
+<h3 id="zcr">ZCR</h3>
+<p><code class="highlighter-rouge">zcr</code></p>
+
+<ul>
+  <li><em>Description</em>: The number of times that the signal crosses the zero value in the buffer.</li>
+  <li><em>What Is It Used For</em>: Helps differentiating between percussive and pitched sounds. Percussive sounds will have a random ZCR across buffers, where pitched sounds will return a more constant value.</li>
+  <li><em>Range</em>: 0 - ((buffer size / 2) - 1). In Meyda, the default buffer size (<code class="highlighter-rouge">bufferSize</code>) is 512 and therefore the default ZCR range is <code class="highlighter-rouge">0 - 255</code>.</li>
+</ul>
+
+<h3 id="energy">Energy</h3>
+<p><code class="highlighter-rouge">energy</code></p>
+
+<ul>
+  <li><em>Description</em>: The infinite integral of the squared signal. According to Lathi [2].</li>
+  <li><em>What Is It Used For</em>: This is another indicator to the loudness of the signal.</li>
+  <li><em>Range</em>: 0 - <code class="highlighter-rouge">bufferSize</code>, where <code class="highlighter-rouge">0.0</code> is very quiet and <code class="highlighter-rouge">bufferSize</code> is very loud.</li>
+</ul>
+
+<p><br /></p>
+
+<h2 id="spectral-features">Spectral Features</h2>
+
+<h3 id="amplitudespectrum">AmplitudeSpectrum</h3>
+<p><code class="highlighter-rouge">amplitudeSpectrum</code></p>
+
+<ul>
+  <li><em>Description</em>: This is also known as the magnitude spectrum. By calculating the Fast Fourier Transform (FFT), we get the signal represented in the frequency domain. The output is an array, where each index is a frequency bin (i.e. containing information about a range of frequencies) containing a complex value (real and imaginary). The amplitude spectrum takes this complex array and computes the amplitude of each index. The result is the distribution of frequencies in the signal along with their corresponding strength. If you want to learn more about Fourier Transform, and the differences between time-domain to frequency-domain analysis, <a href="https://www.mathworks.com/help/signal/examples/practical-introduction-to-frequency-domain-analysis.html">this article</a> is a good place to start.</li>
+  <li><em>What Is It Used For</em>: Very useful for any sort of audio analysis. In fact, many of the features extracted in Meyda are based on this :).</li>
+  <li><em>Range</em>: An array half the size of the FFT, containing information about frequencies between 0 - half of the sampling rate. In Meyda the default sampling rate (<code class="highlighter-rouge">sampleRate</code>) is 44100Hz and the FFT size is equal to the buffer size (<code class="highlighter-rouge">bufferSize</code>) - with a default of 512.</li>
+</ul>
+
+<h3 id="power-spectrum">Power Spectrum</h3>
+<p><code class="highlighter-rouge">powerSpectrum</code></p>
+
+<ul>
+  <li><em>Description</em>: This is the <code class="highlighter-rouge">amplitudeSpectrum</code> squared.</li>
+  <li><em>What Is It Used For</em>: This better emphasizes the differences between frequency bins, compared to the amplitude spectrum.</li>
+  <li><em>Range</em>: An array half the size of the FFT, containing information about between frequencies 0 - half of the sampling rate. In Meyda the default sampling rate (<code class="highlighter-rouge">sampleRate</code>) is 44100Hz and the FFT size is equal to the buffer size (<code class="highlighter-rouge">bufferSize</code>) - with a default of 512.</li>
+</ul>
+
+<h3 id="spectral-centroid">Spectral Centroid</h3>
+<p><code class="highlighter-rouge">spectralCentroid</code></p>
+
+<ul>
+  <li><em>Description</em>: An indicator of the “brightness” of a given sound, representing the spectral centre of gravity. If you were to take the spectrum, make a wooden block out of it and try to balance it on your finger (across the X axis), the spectral centroid would be the frequency that your finger “touches” when it successfully balances.</li>
+  <li><em>What Is It Used For</em>: As mentioned, it’s quantifying the “brightness” of a sound. This can be used for example to classify a bass guitar (low spectral centroid) from a trumpet (high spectral centroid).</li>
+  <li><em>Range</em>: 0 - half of the FFT size. In Meyda the FFT size is equal to the buffer size (<code class="highlighter-rouge">bufferSize</code>) - with a default of 512.</li>
+</ul>
+
+<h3 id="spectral-flatness">Spectral Flatness</h3>
+<p><code class="highlighter-rouge">spectralFlatness</code></p>
+
+<ul>
+  <li><em>Description</em>: The flatness of the spectrum. It is computed using the ratio between the geometric and arithmetic means.</li>
+  <li><em>What Is It Used For</em>: Determining how noisy a sound is. For example a pure sine wave will have a flatness that approaches <code class="highlighter-rouge">0.0</code>, and white noise will have a flatness that approaches <code class="highlighter-rouge">1.0</code>.</li>
+  <li><em>Range</em>: <code class="highlighter-rouge">0.0 - 1.0</code> where <code class="highlighter-rouge">0.0</code> is not flat and <code class="highlighter-rouge">1.0</code> is very flat.</li>
+</ul>
+
+<h3 id="spectral-flux">Spectral Flux</h3>
+<p><code class="highlighter-rouge">spectralFlux</code></p>
+
+<ul>
+  <li><em>Description</em>: A measure of how quickly the spectrum of a signal is changing. It is calculated by computing the difference between the current spectrum and that of the previous frame.</li>
+  <li><em>What Is It Used For</em>: Often corresponds to perceptual “roughness” of a sound. Can be used for example, to determine the timbre of a sound.</li>
+  <li><em>Range</em>: Starts at <code class="highlighter-rouge">0.0</code>. This has no upper range as it depends on the input signal.</li>
+</ul>
+
+<h3 id="spectral-slope">Spectral Slope</h3>
+<p><code class="highlighter-rouge">spectralSlope</code></p>
+
+<ul>
+  <li><em>Description</em>: A measure of how ‘inclined’ the shape of the spectrum is. Calculated by performing linear regression on the amplitude spectrum.</li>
+  <li><em>What Is It Used For</em>: Can be used to differentiate between different voice qualities, such as hissing, breathing and regular speech. Closely relates to spectral centroid and spectral rolloff.</li>
+  <li><em>Range</em>: <code class="highlighter-rouge">0.0 - 1.0</code></li>
+</ul>
+
+<h3 id="spectral-rolloff">Spectral Rolloff</h3>
+<p><code class="highlighter-rouge">spectralRolloff</code></p>
+
+<ul>
+  <li><em>Description</em>: The frequency below which is contained 99% of the energy of the spectrum.</li>
+  <li><em>What Is It Used For</em>: Can be used to approximate the maximum frequency in a signal.</li>
+  <li><em>Range</em>: 0 - half of the sampling rate. In Meyda the default sampling rate (<code class="highlighter-rouge">sampleRate</code>) is 44100Hz.</li>
+</ul>
+
+<h3 id="spectral-spread">Spectral Spread</h3>
+<p><code class="highlighter-rouge">spectralSpread</code></p>
+
+<ul>
+  <li><em>Description</em>: Indicates how spread the frequency content is across the spectrum. Corresponds with the frequency bandwidth.</li>
+  <li><em>What Is It Used For</em>: Can be used to differentiate between noisy (high spectral spread) and pitched sounds (low spectral spread).</li>
+  <li><em>Range</em>: 0 - half of the FFT size. In Meyda the FFT size is equal to the buffer size (<code class="highlighter-rouge">bufferSize</code>) - with a default of 512.</li>
+</ul>
+
+<h3 id="spectral-skewness">Spectral Skewness</h3>
+<p><code class="highlighter-rouge">spectralSkewness</code></p>
+
+<ul>
+  <li><em>Description</em>: Indicates whether or not the spectrum is skewed towards a particular range of values, relative to its mean.</li>
+  <li><em>What Is It Used For</em>: Often used to get an idea about the timbre of a sound.</li>
+  <li><em>Range</em>: Could be negative, positive, or 0. Where 0 is symmetric about the mean, negative indicates that the frequency content is skewed towards the right of the mean, and positive indicates that the frequency content is skewed towards the left of the mean.</li>
+</ul>
+
+<h3 id="spectral-kurtosis">Spectral Kurtosis</h3>
+<p><code class="highlighter-rouge">spectralKurtosis</code></p>
+
+<ul>
+  <li><em>Description</em>: An indicator to how pointy the spectrum is. Can be viewed as the opposite of Spectral Flatness.</li>
+  <li><em>What Is It Used For</em>: Often used to indicate “pitchiness / tonality” of a sound.</li>
+  <li><em>Range</em>: <code class="highlighter-rouge">0.0 - 1.0</code>, where <code class="highlighter-rouge">0.0</code> is not tonal, and <code class="highlighter-rouge">1.0</code> is very tonal.</li>
+</ul>
+
+<h3 id="chroma">Chroma</h3>
+<p><code class="highlighter-rouge">chroma</code></p>
+
+<ul>
+  <li><em>Description</em>: Calculates the how much of each chromatic pitch class (C, C♯, D, D♯, E, F, F♯, G, G♯, A, A♯, B) exists in the signal.</li>
+  <li><em>What Is It Used For</em>: Often used to analyse the harmonic content of recorded music, such as in chord or key detection.</li>
+  <li><em>Range</em>: <code class="highlighter-rouge">0.0 - 1.0</code> for each pitch class.</li>
+</ul>
+
+<p><br /></p>
+
+<h2 id="perceptual-features">Perceptual features</h2>
+
+<h3 id="loudness">Loudness</h3>
+<p><code class="highlighter-rouge">loudness</code></p>
+
+<ul>
+  <li><em>Description</em>: Humans’ perception of frequency is non-linear. The <a href="https://en.wikipedia.org/wiki/Bark_scale">Bark Scale</a> was developed in order to have a scale on which equal distances correspond to equal distances of frequency perception. This feature outputs an object with two values:
+    <ul>
+      <li>The loudness of the input sound on each step (often referred to as bands) of this scale (<code class="highlighter-rouge">.specific</code>). There are 24 bands overall.</li>
+      <li>Total Loudness (<code class="highlighter-rouge">.total</code>), which is a sum of the 24 <code class="highlighter-rouge">.specific</code> loudness coefficients.</li>
+    </ul>
+  </li>
+  <li><em>What Is It Used For</em>: Can be used to construct filters that better correspond with the human perception of loudness.</li>
+  <li><em>Range</em>: <code class="highlighter-rouge">0.0 - 1.0</code> for each <code class="highlighter-rouge">.specific</code> loudness. <code class="highlighter-rouge">0.0 - 24.0</code> for <code class="highlighter-rouge">.total</code> loudness.</li>
+</ul>
+
+<h3 id="perceptual-spread">Perceptual Spread</h3>
+<p><code class="highlighter-rouge">perceptualSpread</code></p>
+
+<ul>
+  <li><em>Description</em>: Computes the spread of the <code class="highlighter-rouge">.specific</code> loudness coefficients, over the bark scale.</li>
+  <li><em>What Is It Used For</em>: An indicator of how “rich / full” a sound will be perceived.</li>
+  <li><em>Range</em>: <code class="highlighter-rouge">0.0 - 1.0</code> where <code class="highlighter-rouge">0.0</code> is not “rich” and <code class="highlighter-rouge">1.0</code> is very “rich”.</li>
+</ul>
+
+<h3 id="perceptual-sharpness">Perceptual Sharpness</h3>
+<p><code class="highlighter-rouge">perceptualSharpness</code></p>
+
+<ul>
+  <li><em>Description</em>: Perceived “sharpness” of a sound, based the Bark loudness coefficients.</li>
+  <li><em>What Is It Used For</em>: Detecting if an input sound is perceived as “sharp”. Can be used, for example, for differentiating between snare-drum and bass-drum sounds.</li>
+  <li><em>Range</em>: <code class="highlighter-rouge">0.0 - 1.0</code> where <code class="highlighter-rouge">0.0</code> is not “sharp” (e.g. bass-drum) and <code class="highlighter-rouge">1.0</code> very sharp (e.g. snare-drum).</li>
+</ul>
+
+<h3 id="mel-frequency-cepstral-coefficients">Mel-Frequency Cepstral Coefficients</h3>
+<p><code class="highlighter-rouge">mfcc</code></p>
+
+<ul>
+  <li><em>Description</em>: As humans don’t interpret pitch in a linear manner, various scales of frequencies were devised to represent the way humans hear the distances between pitches. The <a href="https://en.wikipedia.org/wiki/Mel_scale">Mel scale</a> is one of them, and it is now widely used for voice-related applications. The Meyda implementation was inspired by Huang [3], Davis [4], Grierson [5] and the <a href="https://github.com/bmcfee/librosa">librosa</a> library.</li>
+  <li><em>What Is It Used For</em>: Often used to perform voice activity detection (VAD) prior to automatic speech recognition (ASR).</li>
+  <li><em>Range</em>: An array of values representing the intensity for each Mel band. The default size of the array is 13, but is configureable via <code class="highlighter-rouge">numberOfMFCCCoefficients</code>.</li>
+</ul>
+
+<p><br /></p>
+
+<h2 id="utility-extractors">Utility extractors</h2>
+
+<h3 id="complex-spectrum">Complex Spectrum</h3>
+<p><code class="highlighter-rouge">complexSpectrum</code></p>
+
+<ul>
+  <li><em>Description</em>: An array of complex values (<code class="highlighter-rouge">ComplexArray</code>) containing both the real and the imaginary parts of the FFT.</li>
+  <li><em>What Is It Used For</em>: To create the <code class="highlighter-rouge">amplitudeSpectrum</code>. It is also used to do further signal processing, as it contains information about both the frequency the phase of the signal.</li>
+  <li><em>Range</em>: An array half the size of the FFT, containing information about frequencies 0 - half of the sampling rate, and their corresponding phase values. In Meyda the default sampling rate (<code class="highlighter-rouge">sampleRate</code>) is 44100Hz and the FFT size is equal to the buffer size (<code class="highlighter-rouge">bufferSize</code>) - with a default of 512.</li>
+</ul>
+
+<h3 id="buffer">Buffer</h3>
+<p><code class="highlighter-rouge">buffer</code></p>
+
+<ul>
+  <li><em>Description</em>: This is the raw audio that you get when reading an input from a microphone, a wav file, or any other input audio. It is encoded as a <code class="highlighter-rouge">Float32Array</code>.</li>
+  <li><em>What Is It Used For</em>: All of the time-domain features in Meyda are extracted from this buffer. You can also use that to visualise the audio waveform.</li>
+  <li><em>Range</em>: An array of size <code class="highlighter-rouge">bufferSize</code>, where each value can range between <code class="highlighter-rouge">-1.0 - 1.0</code>.</li>
+</ul>
+
+<p><br /></p>
+
+<h2 id="windowing-functions">Windowing functions</h2>
+
+<p>Windowing functions are used during the conversion of a signal from the time domain (i.e. air pressure over time) to the frequency domain (the phase and intensity of each sine wave that comprises the signal); a prerequisite for many of the audio features described above. Windowing functions generate an envelope of numbers between 0 and 1, and multiply these numbers pointwise with each sample in the signal buffer, making the samples at the middle of the buffer relatively louder, and making the samples at either end of the buffer relatively quieter. This smooths out the result of the conversion to the frequency domain, which makes the final audio features more consistent and less jittery.</p>
+
+<p>Meyda supports 4 windowing functions, each with different characteristics. For more information on windowing, please consult <a href="https://en.wikipedia.org/wiki/Window_function">this article</a></p>
+
+<h3 id="hanning">Hanning</h3>
+<p><code class="highlighter-rouge">Meyda.windowing(signalToBeWindowed, "hanning");</code></p>
+
+<h3 id="hamming">Hamming</h3>
+<p><code class="highlighter-rouge">Meyda.windowing(signalToBeWindowed, "hamming");</code></p>
+
+<h3 id="blackman">Blackman</h3>
+<p><code class="highlighter-rouge">Meyda.windowing(signalToBeWindowed, "blackman");</code></p>
+
+<h3 id="sine">Sine</h3>
+<p><code class="highlighter-rouge">Meyda.windowing(signalToBeWindowed, "sine");</code></p>
+
+<h3 id="rectangular-no-window">Rectangular (no window)</h3>
+<p><code class="highlighter-rouge">Meyda.windowing(signalToBeWindowed, "rect");</code></p>
+
+<p><br />
+<br /></p>
+
+<hr />
+
+<p>[1] G. Loy, Musimathics: <em>The Mathematical Foundations of Music</em>, Volume 1. The MIT Press, 2006.</p>
+
+<p>[2] B. P. Lathi, <em>Modern Digital and Analog Communication Systems</em> 3e Osece. Oxford University Press, 3rd ed., 1998.</p>
+
+<p>[3] X. Huang, A. Acero, and H.-W. Hon, <em>Spoken Language Processing: A Guide to Theory, Algorithm, and System Development.</em> Upper Saddle River, NJ, USA: Prentice Hall PTR, 1st ed., 2001.</p>
+
+<p>[4] S. Davis and P. Mermelstein, “Comparison of parametric representations for monosyllabic word recognition in continuously spoken sentences,” <em>Acoustics, Speech and Signal Processing, IEEE Transactions on</em>, vol. 28, pp. 357–366, Aug 1980.</p>
+
+<p>[5] M. Grierson, “Maximilian: A cross platform c++ audio synthesis library for artists learning to program.,” in <em>Proceedings of International Computer Music Conference,</em> 2010.</p>
+
+<div class="row">
+  <div class="col">
+    <footer class="blog-footer">
+      <hr>
+      <p>Showcase site built by the Meyda core team. You can <a href="https://github.com/hughrawlinson/meyda/wiki/contributing">contribute</a> too you know!</p>
+      <p><a href="#">Back to top</a></p>
+    </footer>
+  </div>
+</div>
+</div>
+    <a href="https://github.com/hughrawlinson/meyda"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/e7bbb0521b397edbd5fe43e7f760759336b5e05f/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677265656e5f3030373230302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png"></a>
+  </body>
+</html>
